@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 import cv2
 import numpy as np
+import time
+from tqdm import tqdm
 
-class Preprocess:
+
+class Preprocessor:
     """默认数据预处理方式为强行缩放到指定大小
     fixed_scale (int): 值为0，图像直接缩放
                        值为1，图像保持原图宽高比缩放，居中对齐
@@ -72,3 +75,80 @@ class Preprocess:
         image -= self.mean
         image /= self.std
         return image[np.newaxis], scale_factor, padding_list
+
+
+class Preprocess:
+    def __init__(self, batch_size, channel_size, input_size, logger, fixed_scale=0, color_space="rgb"):
+        self.fixed_scale = fixed_scale
+        self.color_space = color_space
+        self.batch_size = batch_size
+        self.channel_size = channel_size
+        self.input_size = input_size
+        self.preprocessor = Preprocessor(self.fixed_scale, self.color_space)
+        self.logger = logger
+
+    def preprocess(self, images):
+        '''
+        图片预处理支持批量处理(多batch)
+        Args:
+            images(list[dict]): 读入模块返回的图片 list of {'path_img':, 'img':,}
+        Returns:
+            result(list[dict]): 预处理后的数据，如果为多batch，则将batch_size张图片整合到一个batch, list of {'path_imgs':, 'imgs':,}, 其中的path_imgs和imgs是整合后的图片
+            例如：batch_size为5: shape为[5, 3, 640, 640]
+        '''
+        results = []
+        # 图片预处理
+        # Todo: 现在默认batch_size必须整除图片数量，添加功能使得batch_size可以为任意值
+        self.logger.info("Start (Preprocess) preprocess...")
+        preprocess_start_time = time.time()
+        preprocessed_img_list = []
+        for image in tqdm(images):
+            preprocessed_img, scale_factor, padding_list = self.preprocessor(image['img'], self.input_size)
+            preprocessed_img_list.append({
+                'path_img':image['path_img'],
+                'img':preprocessed_img, 
+                'img_size':image['img_size'],
+                'scale_factor':scale_factor, 
+                'padding_list':padding_list}
+            )
+        preprocess_end_time = time.time()
+        self.logger.info("Finish (Preprocess) preprocess...")
+        self.logger.debug(f'Use {preprocess_end_time - preprocess_start_time} s')
+
+        # 将多张图片合并为一个batch
+        self.logger.info("Start (Preprocess) concat...")
+        concat_start_time = time.time()
+        for i in tqdm(range(0, len(preprocessed_img_list), self.batch_size)):
+            concat_img = preprocessed_img_list[i]['img']
+            concat_path_img = [preprocessed_img_list[i]['path_img']]
+            concat_img_size = [preprocessed_img_list[i]['img_size']]
+            concat_scale_factor = [preprocessed_img_list[i]['scale_factor']]
+            concat_padding_list = [preprocessed_img_list[i]['padding_list']]
+            for j in range(1, self.batch_size):
+                # padding
+                if i + j >= len(preprocessed_img_list):
+                    concat_img = np.concatenate((concat_img, np.zeros((1, self.channel_size, self.input_size[0], self.input_size[1]), dtype=np.float32)))
+                    concat_path_img.append(None)
+                    concat_img_size.append(None)
+                    concat_scale_factor.append(None)
+                    concat_padding_list.append(None)
+                    continue
+                concat_img = np.concatenate((concat_img, preprocessed_img_list[i+j]['img']), axis=0)
+                concat_path_img.append(preprocessed_img_list[i+j]['path_img'])
+                concat_img_size.append(preprocessed_img_list[i+j]['img_size'])
+                concat_scale_factor.append(preprocessed_img_list[i+j]['scale_factor'])
+                concat_padding_list.append(preprocessed_img_list[i+j]['padding_list'])
+            results.append({
+                'path_imgs':concat_path_img,
+                'imgs':concat_img, 
+                'img_sizes':concat_img_size,
+                'scale_factors':concat_scale_factor, 'padding_lists':concat_padding_list}
+            )
+        concat_end_time = time.time()
+        self.logger.info("Finish (Preprocess) concat...")
+        self.logger.debug(f'Use {concat_end_time - concat_start_time} s')
+
+        # gc
+        preprocessed_img_list = None
+
+        return results

@@ -4,7 +4,6 @@ import pynvml
 import math
 import pandas as pd
 from tqdm import tqdm
-from functools import partial
 from multiprocessing import Process, Manager, Lock, Semaphore
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -13,7 +12,7 @@ from module.inference import inference_ox
 from module.utils import ReadConfig, setup_logging, save_od_json, imshow
 
 # 标签融合
-def merge_labels(df, prelabels, logger):
+def merge_labels(df, prelabels):
     p_bar = tqdm(prelabels.items())
     p_bar.set_description('merge labels')
     for path_img, labels in p_bar:
@@ -38,13 +37,6 @@ def generate_dahua_json(info, df, max_workers):
         for future in tqdm(as_completed(futures_list), total=len(futures_list)):
             pass
 
-def check_memory_usage(threshold=0.8):
-    mem = psutil.virtual_memory()
-    if mem.percent > threshold:
-        print(f"Memory usage is above the threshold: {mem.percent}%")
-        print("Stopping the program to prevent memory overflow.")
-        exit(1)
-
 def main():
     program_start_time = time.time()
     # 参数解析
@@ -68,7 +60,11 @@ def main():
     segment_num = math.ceil(len(path_imgs) / load_size)
     images = None
     for i in range(segment_num):
-        check_memory_usage()  # 检查内存使用情况
+        # 检查内存使用情况
+        mem = psutil.virtual_memory()
+        if mem.percent > 80:
+            logger.error("Memory usage is above the threshold: 80%")
+            exit(1)
         io_start_time = time.time()
         if i == segment_num - 1:
             logger.info(f'Task_type: {task_type} - Start reading images [{i*load_size}:{len(path_imgs)}]...')
@@ -101,7 +97,7 @@ def main():
             logger.info(f'Task_type: {task_type} - Start merging labels...')
             merge_label_start_time = time.time()
             for prelabel in shared_list:
-                merge_labels(df, prelabel, logger)
+                merge_labels(df, prelabel)
             merge_label_end_time = time.time()
             logger.info(f'Task_type: {task_type} - Finish merging labels...')
             logger.debug(f'Task_type: {task_type} - Use {merge_label_end_time - merge_label_start_time} s')
