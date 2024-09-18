@@ -1,2 +1,2 @@
-from .read_cfg import read_cfg
+from .read_cfg import ReadConfig
 from .show_result import imshow

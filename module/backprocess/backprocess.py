@@ -7,8 +7,6 @@ from threading import Lock
 from ..inference import Decoder
 from .nms import non_max_suppression
 
-
-
 class BackProcess:
     def __init__(self, args, max_workers=20):
         '''

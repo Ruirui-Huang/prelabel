@@ -4,7 +4,6 @@ import numpy as np
 import time
 from tqdm import tqdm
 
-
 class Preprocessor:
     """默认数据预处理方式为强行缩放到指定大小
     fixed_scale (int): 值为0，图像直接缩放

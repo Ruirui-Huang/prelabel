@@ -1,3 +1,4 @@
+import os, sys
 import time
 import psutil
 import pynvml
@@ -6,10 +7,10 @@ import pandas as pd
 from tqdm import tqdm
 from multiprocessing import Process, Manager, Lock, Semaphore
 from concurrent.futures import ThreadPoolExecutor, as_completed
-
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from module.preprocess import ImageIO
 from module.inference import inference_ox
-from module.utils import ReadConfig, setup_logging, save_od_json, imshow
+from module.utils import ReadConfig, setup_logging, imshow
 
 # 标签融合
 def merge_labels(df, prelabels):
@@ -92,23 +93,23 @@ def main():
         [p.start() for p in process_list]
         [p.join() for p in process_list]
 
-        if task_type == 'od':
-            # 标签融合
-            logger.info(f'Task_type: {task_type} - Start merging labels...')
-            merge_label_start_time = time.time()
-            for prelabel in shared_list:
-                merge_labels(df, prelabel)
-            merge_label_end_time = time.time()
-            logger.info(f'Task_type: {task_type} - Finish merging labels...')
-            logger.debug(f'Task_type: {task_type} - Use {merge_label_end_time - merge_label_start_time} s')
+        # if task_type == 'od':
+        #     # 标签融合
+        #     logger.info(f'Task_type: {task_type} - Start merging labels...')
+        #     merge_label_start_time = time.time()
+        #     for prelabel in shared_list:
+        #         merge_labels(df, prelabel)
+        #     merge_label_end_time = time.time()
+        #     logger.info(f'Task_type: {task_type} - Finish merging labels...')
+        #     logger.debug(f'Task_type: {task_type} - Use {merge_label_end_time - merge_label_start_time} s')
 
-            # 生成dahua json
-            logger.info(f"Task_type: {task_type} - Start generating dahua jsons...")
-            generate_start_time = time.time()
-            generate_dahua_json(_info, df, max_workers)
-            generate_end_time = time.time()
-            logger.info(f'Task_type: {task_type} - Finish generating dahua jsons...')
-            logger.debug(f'Task_type: {task_type} - Use {generate_end_time - generate_start_time} s')
+        #     # 生成dahua json
+        #     logger.info(f"Task_type: {task_type} - Start generating dahua jsons...")
+        #     generate_start_time = time.time()
+        #     generate_dahua_json(_info, df, max_workers)
+        #     generate_end_time = time.time()
+        #     logger.info(f'Task_type: {task_type} - Finish generating dahua jsons...')
+        #     logger.debug(f'Task_type: {task_type} - Use {generate_end_time - generate_start_time} s')
 
     program_end_time = time.time()
     logger.debug(f'Task_type: {task_type} - program use {program_end_time - program_start_time} s')
