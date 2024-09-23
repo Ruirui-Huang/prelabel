@@ -62,10 +62,10 @@ def imshow_semantic(path_img, seg, palette=colors, save_path=None, opacity=0.8):
         color_seg[seg == index] = palette[index]
     image_seg = image * (1-opacity) + color_seg[..., ::-1] * opacity
 
-    root = osp.join(osp.dirname(osp.dirname(path_img)), 'mask')
-    if not osp.exists(root): os.makedirs(root)
-    path_mask = osp.join(root, osp.split(path_img)[-1].replace(".jpg", ".png"))
-    cv2.imwrite(path_mask, mask)
+    # root = osp.join(osp.dirname(osp.dirname(path_img)), 'mask')
+    # if not osp.exists(root): os.makedirs(root)
+    # path_mask = osp.join(root, osp.split(path_img)[-1].replace(".jpg", ".png"))
+    # cv2.imwrite(path_mask, mask)
 
     image_show = np.concatenate((image_seg, np.ones((H, W//50, 3), dtype=np.uint8)*255, image), axis=1)
 
@@ -122,7 +122,7 @@ def imshow_seg(path_img, path_json, classes, use_rle=True, save_path=None):
         imshow_semantic(path_img, mask, save_path=save_path)
 
 # 预标注结果可视化
-def imshow(info, model_configs, save_path, max_workers, use_rle=1):
+def imshow(info, model_configs, save_path, max_workers, use_rle=1, disable_pbar=True):
     classes = set()
     task_type = model_configs[0]['Task_type']
     for m in model_configs:
@@ -132,11 +132,9 @@ def imshow(info, model_configs, save_path, max_workers, use_rle=1):
     for cls, s in zip(_classes, _is_show):
         if s: classes.add(cls)
 
-    p_bar = tqdm(info)
-    p_bar.set_description('Drawing')
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures_list = []
-        for line in p_bar:
+        for line in info:
             path_img = line['file']
             path_json = line['json']
             if task_type == 'od':
@@ -145,6 +143,6 @@ def imshow(info, model_configs, save_path, max_workers, use_rle=1):
             elif task_type == 'os':
                 bound_func_imshow_seg = partial(imshow_seg, save_path=save_path)
                 futures_list.append(executor.submit(bound_func_imshow_seg, path_img, path_json, list(classes), use_rle))
-        
-        for future in as_completed(futures_list):
+                
+        for future in tqdm(as_completed(futures_list), total=len(futures_list), disable=disable_pbar):
             pass

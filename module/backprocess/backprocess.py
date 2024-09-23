@@ -8,13 +8,14 @@ from ..inference import Decoder
 from .nms import non_max_suppression
 
 class BackProcess:
-    def __init__(self, args, max_workers=20):
+    def __init__(self, args, max_workers=20, disable_pbar=True):
         '''
         Args:
             args (dict): 模型参数
             func_show (func): 可视化函数
         '''
         self.max_workers = max_workers
+        self.disable_pbar = disable_pbar
         self.task_type = args['Task_type']
         if self.task_type == 'od':
             self.score_thr = args["Score_thr"]
@@ -125,7 +126,7 @@ class BackProcess:
                     futures_list.append(executor.submit(self.run, input_dict))
             
             # 线程池join
-            for future in tqdm(as_completed(futures_list), total=len(futures_list)):
+            for future in tqdm(as_completed(futures_list), total=len(futures_list), disable=self.disable_pbar):
                 pass
 
         return self.result_dict

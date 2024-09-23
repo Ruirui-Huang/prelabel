@@ -1,42 +1,10 @@
-[
-    {
-        "file": ".\\demo\\data\\000000005667.jpg",
-        "json": ".\\demo\\data\\000000005667.json"
-    },
-    {
-        "file": ".\\demo\\data\\000000009226.jpg",
-        "json": ".\\demo\\data\\000000009226.json"
-    },
-    {
-        "file": ".\\demo\\data\\000000016578.jpg",
-        "json": ".\\demo\\data\\000000016578.json"
-    },
-    {
-        "file": ".\\demo\\data\\000000022180.jpg",
-        "json": ".\\demo\\data\\000000022180.json"
-    },
-    {
-        "file": ".\\demo\\data\\000000036433.jpg",
-        "json": ".\\demo\\data\\000000036433.json"
-    },
-    {
-        "file": ".\\demo\\data\\000000036765.jpg",
-        "json": ".\\demo\\data\\000000036765.json"
-    },
-    {
-        "file": ".\\demo\\data\\000000038375.jpg",
-        "json": ".\\demo\\data\\000000038375.json"
-    },
-    {
-        "file": ".\\demo\\data\\000000039790.jpg",
-        "json": ".\\demo\\data\\000000039790.json"
-    },
-    {
-        "file": ".\\demo\\data\\000000043133.jpg",
-        "json": ".\\demo\\data\\000000043133.json"
-    },
-    {
-        "file": ".\\demo\\data\\000000051278.jpg",
-        "json": ".\\demo\\data\\000000051278.json"
-    }
-]
+{"baseId": 1234, "file": ".\\demo\\data\\000000005667.jpg", "json": ".\\demo\\data\\000000005667.json"}
+{"baseId": 1234, "file": ".\\demo\\data\\000000009226.jpg", "json": ".\\demo\\data\\000000009226.json"}
+{"baseId": 1234, "file": ".\\demo\\data\\000000016578.jpg", "json": ".\\demo\\data\\000000016578.json"}
+{"baseId": 1234, "file": ".\\demo\\data\\000000022180.jpg", "json": ".\\demo\\data\\000000022180.json"}
+{"baseId": 1234, "file": ".\\demo\\data\\000000036433.jpg", "json": ".\\demo\\data\\000000036433.json"}
+{"baseId": 1234, "file": ".\\demo\\data\\000000036765.jpg", "json": ".\\demo\\data\\000000036765.json"}
+{"baseId": 1234, "file": ".\\demo\\data\\000000038375.jpg", "json": ".\\demo\\data\\000000038375.json"}
+{"baseId": 1234, "file": ".\\demo\\data\\000000039790.jpg", "json": ".\\demo\\data\\000000039790.json"}
+{"baseId": 1234, "file": ".\\demo\\data\\000000043133.jpg", "json": ".\\demo\\data\\000000043133.json"}
+{"baseId": 1234, "file": ".\\demo\\data\\000000051278.jpg", "json": ".\\demo\\data\\000000051278.json"}

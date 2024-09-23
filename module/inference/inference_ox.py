@@ -6,8 +6,11 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import onnxruntime as ort
 from queue import Queue
 from threading import Thread
+from ..preprocess import Preprocess
+from ..backprocess import BackProcess
+from ..utils import save_os_json
 
-def inference_ox(n_gpu, m, images, shared_list, mutex, info, use_rle, max_workers, semaphores, logger):
+def inference_ox(n_gpu, m, images, shared_list, mutex, info, use_rle, max_workers, semaphores, logger, disable_pbar):
     task_type = m['Task_type']
     # 检查配置
     assert m['Weight_type'] == 'onnx', '模型类型不支持'
@@ -41,7 +44,7 @@ def inference_ox(n_gpu, m, images, shared_list, mutex, info, use_rle, max_worker
 
     load_end_time = time.time()
     logger.info(f'Task_type: {task_type} - Finish getting batch_size:{batch_size} and input size:{input_size}...')
-    logger.debug(f'Task_type: {task_type} - Uses {load_end_time - load_start_time} s')
+    logger.info(f'Task_type: {task_type} - Uses {load_end_time - load_start_time} s')
 
     # 预处理
     logger.info(f'Task_type: {task_type} - Start preprocessing...')
@@ -52,11 +55,12 @@ def inference_ox(n_gpu, m, images, shared_list, mutex, info, use_rle, max_worker
         channel_size=channel_size, 
         fixed_scale=m['Fixed_scale'], 
         color_space=m['Color_space'], 
-        logger=logger)
+        logger=logger,
+        disable_pbar=disable_pbar,)
     results = pre.preprocess(images)
     preprocess_end_time = time.time()
     logger.info(f'Task_type: {task_type} - Finish Preprocessing...')
-    logger.debug(f'Task_type: {task_type} - Uses {preprocess_end_time - preprocess_start_time} s')
+    logger.info(f'Task_type: {task_type} - Uses {preprocess_end_time - preprocess_start_time} s')
 
     # 模型推理
     logger.info(f'Task_type: {task_type} - Start infering...')
@@ -65,7 +69,7 @@ def inference_ox(n_gpu, m, images, shared_list, mutex, info, use_rle, max_worker
     feats = inf.forward(results)
     infer_end_time = time.time()
     logger.info(f'Task_type: {task_type} - Finish Infering...')
-    logger.debug(f'Task_type: {task_type} - Uses {infer_end_time - infer_start_time} s')
+    logger.info(f'Task_type: {task_type} - Uses {infer_end_time - infer_start_time} s')
 
     # 预处理结果回收
     del results
@@ -77,7 +81,7 @@ def inference_ox(n_gpu, m, images, shared_list, mutex, info, use_rle, max_worker
     prelabels = back.forward(feats)
     back_end_time = time.time()
     logger.info(f'Task_type: {task_type} - Finish backprocessing...')
-    logger.debug(f'Task_type: {task_type} - Uses {back_end_time - back_start_time} s')
+    logger.info(f'Task_type: {task_type} - Uses {back_end_time - back_start_time} s')
 
     # 推理结果回收
     del feats
@@ -106,7 +110,7 @@ def inference_ox(n_gpu, m, images, shared_list, mutex, info, use_rle, max_worker
                             is_show,
                             use_rle)
                     futures_list.append(future)
-                for future in tqdm(as_completed(futures_list), total=len(futures_list)):
+                for future in tqdm(as_completed(futures_list), total=len(futures_list), disable=disable_pbar):
                     try:
                         future.result()
                     except Exception as e:
@@ -114,11 +118,11 @@ def inference_ox(n_gpu, m, images, shared_list, mutex, info, use_rle, max_worker
 
             save_end_time = time.time()
             logger.info(f'Task_type: {task_type} - End saving dahua json...')
-            logger.debug(f'Task_type: {task_type} - Uses {save_end_time - save_start_time} s')
+            logger.info(f'Task_type: {task_type} - Uses {save_end_time - save_start_time} s')
 
 
 class Inference:
-    def __init__(self, gpu, model, semaphores, logger):
+    def __init__(self, gpu, model, semaphores, logger, disable_pbar=True):
         '''
         Args:
             gpu (int): gpu索引
@@ -129,6 +133,7 @@ class Inference:
         self.model = model
         self.semaphores = semaphores
         self.logger = logger
+        self.disable_pbar = disable_pbar
     
     def infer(self, gpu_id, batches, result):
         '''
@@ -145,7 +150,7 @@ class Inference:
             input_name = session.get_inputs()[0].name
 
             # 模型推理
-            for batch in tqdm(batches, desc="Number " + str(gpu_id) + " gpus infering", position=gpu_id):
+            for batch in tqdm(batches, desc="Number " + str(gpu_id) + " gpus infering", position=gpu_id, disable=self.disable_pbar):
                 input_ortvalue = ort.OrtValue.ortvalue_from_numpy(batch['imgs'], 'cuda', gpu_id)
                 features = session.run(None, {input_name: input_ortvalue})
                 batch['features'] = features

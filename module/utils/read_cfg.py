@@ -28,10 +28,9 @@ class ReadConfig:
             inputInfo (dict): 平台参数以及需要预标的目标类别信息
         '''
         fileInfo = open(self.args.filesInfo, 'r', encoding='utf-8')
-        jsonFile = open(self.args.jsonFile, mode='r', encoding='utf-8')
+        jsonFile = open(self.args.jsonFile, 'r', encoding='utf-8')
         info_lines = fileInfo.readlines()
         inputInfo = json.load(jsonFile)
-
         info = []
         for i in info_lines:
             jsonInfo = json.loads(i)

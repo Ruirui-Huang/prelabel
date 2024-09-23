@@ -30,7 +30,7 @@ def generate_json(image_dir, json_dir, filesInfo):
 
     # 将数据写入新的JSON文件
     with open(filesInfo, 'w') as outfile:
-        json.dump(data, outfile, indent=4)
+        json.dump(data, outfile)
 
 if __name__ == '__main__': 
     parser = getArgs()
