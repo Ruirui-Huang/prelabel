@@ -6,7 +6,6 @@ from numpy import ndarray
 MAJOR, MINOR = map(int, cv2.__version__.split('.')[:2])
 assert MAJOR == 4
 
-
 def non_max_suppression(boxes: Union[List[ndarray], Tuple[ndarray]],
                         scores: Union[List[float], Tuple[float]],
                         labels: Union[List[int], Tuple[int]],

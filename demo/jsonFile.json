@@ -1,0 +1,12 @@
+{
+    "markDataInPath": "1234",
+    "markDataOutPath":"1234",
+    "args": {
+        "draw_path": "./demo/v2show",
+        "log_level": 20,
+        "use_rle": 1,
+        "disable_pbar": 0,
+        "task_type": "os",
+        "person": 1
+    }
+}

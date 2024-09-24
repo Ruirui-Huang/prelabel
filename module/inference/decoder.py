@@ -1,8 +1,6 @@
 from typing import List, Tuple, Union
 import numpy as np
-from config import ModelType
 from numpy import ndarray
-
 
 def softmax(x: ndarray, axis: int = -1) -> ndarray:
     e_x = np.exp(x - np.max(x, axis=axis, keepdims=True))
@@ -13,7 +11,7 @@ def sigmoid(x: ndarray) -> ndarray:
     return 1. / (1. + np.exp(-x))
 
 class Decoder:
-    def __init__(self, model_type: ModelType, model_only: bool = False):
+    def __init__(self, model_type, model_only):
         self.model_type = model_type
         self.model_only = model_only
         self.boxes_pro = []
@@ -42,19 +40,19 @@ class Decoder:
         else:
             # ax620a horizonX3 transpose channel to last dim by default
             feats = [np.ascontiguousarray(feat) for feat in feats]
-        if self.model_type == ModelType.YOLOV5:
+        if self.model_type == 'YOLOv5':
             self.__yolov5_decode(feats, conf_thres, num_labels, **kwargs)
-        elif self.model_type == ModelType.YOLOX:
+        elif self.model_type == 'YOLOx':
             self.__yolox_decode(feats, conf_thres, num_labels, **kwargs)
-        elif self.model_type in (ModelType.PPYOLOE, ModelType.PPYOLOEP):
+        elif self.model_type in ('PPYOLOE', 'PPYOLOEP'):
             self.__ppyoloe_decode(feats, conf_thres, num_labels, **kwargs)
-        elif self.model_type == ModelType.YOLOV6:
+        elif self.model_type == 'YOLOv6':
             self.__yolov6_decode(feats, conf_thres, num_labels, **kwargs)
-        elif self.model_type == ModelType.YOLOV7:
+        elif self.model_type == 'YOLOv7':
             self.__yolov7_decode(feats, conf_thres, num_labels, **kwargs)
-        elif self.model_type == ModelType.RTMDET:
+        elif self.model_type == 'RTMDET':
             self.__rtmdet_decode(feats, conf_thres, num_labels, **kwargs)
-        elif self.model_type == ModelType.YOLOV8:
+        elif self.model_type == 'YOLOv8':
             self.__yolov8_decode(feats, conf_thres, num_labels, **kwargs)
         else:
             raise NotImplementedError
