@@ -77,8 +77,6 @@ def imshow_seg(path_img, path_json, classes, use_rle=True, save_path=None):
     img_h, img_w, _ = image.shape
     jsonFile = open(path_json, mode='r', encoding='utf-8')
     json_data = json.load(jsonFile)
-    mask = np.zeros((img_h, img_w), dtype=np.uint8)
-    area_max = 0
     polygon_list = []
     area_list = []
     color_list = []
@@ -97,9 +95,7 @@ def imshow_seg(path_img, path_json, classes, use_rle=True, save_path=None):
             rle = {"size":[img_h, img_w], "counts": obj['rle']}
             maskArr = np.array(mask_util.decode(rle), dtype=np.uint8)
             maskArea = maskArr.sum()
-            mask += maskArr*cls_id
-            mask = np.where((mask > cls_id)&(area_max < maskArea), cls_id, mask)
-            area_max = max(area_max, maskArea)
+            area_list.append((maskArea, cls_id, maskArr))
         else:
             color_list.append(cls_id)
             polygon = np.array(obj['coord'])
@@ -111,7 +107,12 @@ def imshow_seg(path_img, path_json, classes, use_rle=True, save_path=None):
             area = cv2.contourArea(contour=polygon, oriented=False)
             area_list.append(area)
 
-    if not use_rle:
+    mask = np.zeros((img_h, img_w), dtype=np.uint8)
+    if use_rle:
+        area_list.sort(key=lambda x:x[0], reverse=True)
+        for maskArea, cls_id, maskArr in area_list:
+            mask = np.where(maskArea > 0, cls_id, mask)
+    else:
         area_list = np.asarray(area_list)
         area_index = np.argsort(-area_list)
         for i in range(len(area_index)):
