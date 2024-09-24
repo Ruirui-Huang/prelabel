@@ -77,14 +77,13 @@ class Preprocessor:
 
 
 class Preprocess:
-    def __init__(self, batch_size, channel_size, input_size, logger, disable_pbar=True, fixed_scale=0, color_space="rgb"):
+    def __init__(self, batch_size, channel_size, input_size, disable_pbar=True, fixed_scale=0, color_space="rgb"):
         self.fixed_scale = fixed_scale
         self.color_space = color_space
         self.batch_size = batch_size
         self.channel_size = channel_size
         self.input_size = input_size
         self.preprocessor = Preprocessor(self.fixed_scale, self.color_space)
-        self.logger = logger
         self.disable_pbar = disable_pbar
 
     def preprocess(self, images):
@@ -98,9 +97,6 @@ class Preprocess:
         '''
         results = []
         # 图片预处理
-        # Todo: 现在默认batch_size必须整除图片数量，添加功能使得batch_size可以为任意值
-        self.logger.info("Start (Preprocess) preprocess...")
-        preprocess_start_time = time.time()
         preprocessed_img_list = []
         for image in tqdm(images, disable=self.disable_pbar):
             preprocessed_img, scale_factor, padding_list = self.preprocessor(image['img'], self.input_size)
@@ -111,13 +107,8 @@ class Preprocess:
                 'scale_factor':scale_factor, 
                 'padding_list':padding_list}
             )
-        preprocess_end_time = time.time()
-        self.logger.info("Finish (Preprocess) preprocess...")
-        self.logger.info(f'Use {preprocess_end_time - preprocess_start_time} s')
 
         # 将多张图片合并为一个batch
-        self.logger.info("Start (Preprocess) concat...")
-        concat_start_time = time.time()
         for i in tqdm(range(0, len(preprocessed_img_list), self.batch_size), disable=self.disable_pbar):
             concat_img = preprocessed_img_list[i]['img']
             concat_path_img = [preprocessed_img_list[i]['path_img']]
@@ -144,9 +135,6 @@ class Preprocess:
                 'img_sizes':concat_img_size,
                 'scale_factors':concat_scale_factor, 'padding_lists':concat_padding_list}
             )
-        concat_end_time = time.time()
-        self.logger.info("Finish (Preprocess) concat...")
-        self.logger.info(f'Use {concat_end_time - concat_start_time} s')
 
         # gc
         preprocessed_img_list = None
