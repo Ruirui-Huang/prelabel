@@ -50,12 +50,11 @@ def main():
     draw_path = inputInfo['args'].get('draw_path', None)
     use_rle = inputInfo['args'].get('use_rle', True)
     disable_pbar = inputInfo['args'].get('disable_pbar', True)
-    load_size_per_gpu = min(inputInfo['args'].get('load_size', 5000), len(path_imgs))
+    load_size = min(inputInfo['args'].get('load_size', 5000), len(path_imgs))
     max_workers = inputInfo['args'].get('max_workers', 20)
     model_num_per_gpu = inputInfo['args'].get('model_num_per_gpu', 1)
     log_level = inputInfo['args'].get('log_level', 20)
     task_type = inputInfo['args']['task_type']
-    load_size = load_size_per_gpu*n_gpu
     
     # 日志
     logger = setup_logging(level=log_level)
