@@ -14,16 +14,16 @@ def getArgs():
 if __name__ == '__main__': 
     parser = getArgs()
     args = parser.parse_args()
-    if not osp.exists(json_dir):
-        os.makedirs(json_dir, mode=0o777)
+    if not osp.exists(args.json_dirargs.json_dir):
+        os.makedirs(args.json_dir, mode=0o777)
     with open(args.filesInfo, 'w') as outfile:
-        for img in os.listdir(image_dir):
+        for img in os.listdir(args.image_dir):
             if img.endswith('.jpg'):
                 img_path = osp.join(args.image_dir, img)
                 json_path = osp.join(args.json_dir, img) + ".json"
                 data = {
                     "baseId": "111",
-                    "file": image_path,
+                    "file": img_path,
                     "json": json_path
                 }
                 json.dump(data, outfile)
