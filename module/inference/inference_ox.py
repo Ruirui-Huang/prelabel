@@ -1,5 +1,4 @@
-import os
-import time
+import os, time
 import onnx
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -10,7 +9,7 @@ from ..preprocess import Preprocess
 from ..backprocess import BackProcess
 from ..utils import save_os_json
 
-def inference_ox(n_gpu, m, images, shared_list, mutex, info, use_rle, max_workers, semaphores, logger, disable_pbar):
+def inference_ox(n_gpu, m, images, shared_list, mutex, info, use_rle, max_workers, semaphores, logger, disable_pbar=True):
     task_type = m['Task_type']
     # 检查配置
     assert m['Weight_type'] == 'onnx', '模型类型不支持'
@@ -55,7 +54,6 @@ def inference_ox(n_gpu, m, images, shared_list, mutex, info, use_rle, max_worker
         channel_size=channel_size, 
         fixed_scale=m['Fixed_scale'], 
         color_space=m['Color_space'], 
-        logger=logger,
         disable_pbar=disable_pbar,)
     results = pre.preprocess(images)
     preprocess_end_time = time.time()
@@ -65,7 +63,7 @@ def inference_ox(n_gpu, m, images, shared_list, mutex, info, use_rle, max_worker
     # 模型推理
     logger.info(f'Task_type: {task_type} - Start infering...')
     infer_start_time = time.time()
-    inf = Inference(n_gpu, m['Path_model'], semaphores, logger)
+    inf = Inference(n_gpu, m['Path_model'], semaphores, logger, disable_pbar)
     feats = inf.forward(results)
     infer_end_time = time.time()
     logger.info(f'Task_type: {task_type} - Finish Infering...')
